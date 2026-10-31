@@ -1,0 +1,534 @@
+{
+ "id": "15-hazelwood",
+ "title": "15 Hazelwood Field Plan",
+ "address": "15 Hazelwood Dr, Ste 100, Amherst NY 14228",
+ "lat": 43.02823,
+ "lon": -78.8148,
+ "image": "base.jpg",
+ "imageSize": [
+  929,
+  895
+ ],
+ "home": [
+  300,
+  258
+ ],
+ "tbdFt": 250,
+ "missions": [
+  {
+   "key": "P",
+   "tab": "Photo",
+   "name": "Photo mission",
+   "color": "photo",
+   "note": "One waypoint mission. Hover, aim, fire a bracket at each point.",
+   "shots": [
+    "P1",
+    "P2",
+    "P3",
+    "P4",
+    "P5"
+   ]
+  },
+  {
+   "key": "A",
+   "tab": "Orbit",
+   "name": "Mission A · Orbit",
+   "color": "orbit",
+   "note": "Own mission, POI on the complex center. Curved route through four corners, one lap.",
+   "shots": [
+    "V2"
+   ]
+  },
+  {
+   "key": "B",
+   "tab": "Video",
+   "name": "Mission B · Video",
+   "color": "video",
+   "note": "One mission, five moves. POI on the SW building corner for V6; every other point has a set heading.",
+   "shots": [
+    "V3",
+    "V4",
+    "V6",
+    "V1",
+    "V5"
+   ]
+  },
+  {
+   "key": "T",
+   "tab": "Thermal",
+   "name": "Thermal",
+   "color": "thermal",
+   "note": "Deferred. After dark, 7 to 9 pm. Heights are placeholders.",
+   "shots": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "key": "M",
+   "tab": "Map",
+   "name": "Mapping",
+   "color": "map",
+   "note": "Grid mission for the orthomosaic and model, midday when shadows are short.",
+   "shots": [
+    "V7"
+   ]
+  }
+ ],
+ "shots": {
+  "P1": {
+   "t": "Golden-hour hero",
+   "type": "still",
+   "pos": [
+    110,
+    700
+   ],
+   "aim": [
+    310,
+    420
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "NE",
+   "gb": "-20°",
+   "win": "5:30–6:05",
+   "ac": "M4E",
+   "why": "Lead image. Lit west and south faces, building centered with the park around it."
+  },
+  "P2": {
+   "t": "Suite 100 front entrance",
+   "type": "still",
+   "pos": [
+    405,
+    220
+   ],
+   "aim": [
+    395,
+    300
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "S",
+   "gb": "-5°",
+   "win": "12:00–1:30",
+   "ac": "M4E",
+   "why": "Main entrance. Shaded all day in fall, so shoot midday or under overcast; bracket and expose for the facade."
+  },
+  "P3": {
+   "t": "Nadir site plan",
+   "type": "nadir",
+   "pos": [
+    380,
+    430
+   ],
+   "alt": [
+    390,
+    390
+   ],
+   "hd": "N",
+   "gb": "-90°",
+   "win": "11:00–1:30",
+   "ac": "M4E",
+   "why": "Clean overhead for the annotated site graphic."
+  },
+  "P4": {
+   "t": "High context set",
+   "type": "context",
+   "pos": [
+    448,
+    425
+   ],
+   "alt": [
+    390,
+    390
+   ],
+   "hd": "N E S W",
+   "gb": "-15°",
+   "win": "11:00–1:30",
+   "ac": "M4E",
+   "why": "Four headings for the labeled location graphic."
+  },
+  "P5": {
+   "t": "Entrance and signage detail",
+   "type": "still",
+   "pos": [
+    502,
+    240
+   ],
+   "aim": [
+    400,
+    290
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "SW",
+   "gb": "-10°",
+   "win": "12:00–1:30",
+   "ac": "M4E tele",
+   "why": "Close frame of the entry. Tele lens or crop at this height."
+  },
+  "V2": {
+   "t": "Complex orbit",
+   "type": "ellipse",
+   "c": [
+    445,
+    428
+   ],
+   "a": 350,
+   "b": 300,
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "POI",
+   "gb": "-15°",
+   "win": "5:35–6:05",
+   "ac": "M4E",
+   "why": "One clockwise lap, camera locked on the complex center.",
+   "wps": [
+    [
+     "A1",
+     "122",
+     "POI",
+     "S"
+    ],
+    [
+     "A2",
+     "122",
+     "POI",
+     ""
+    ],
+    [
+     "A3",
+     "122",
+     "POI",
+     ""
+    ],
+    [
+     "A4",
+     "122",
+     "POI",
+     "X"
+    ]
+   ]
+  },
+  "V3": {
+   "t": "Push-in to Suite 100",
+   "type": "line",
+   "p": [
+    352,
+    85
+   ],
+   "q": [
+    356,
+    250
+   ],
+   "alt": [
+    "TBD",
+    122
+   ],
+   "tbd": true,
+   "hd": "180°",
+   "gb": "-20→-5°",
+   "win": "12:00–1:30",
+   "ac": "M4E",
+   "why": "Glide in over Hazelwood Dr and descend to the entrance. Same battery as P2.",
+   "wps": [
+    [
+     "B1",
+     "TBD",
+     "180°",
+     "S"
+    ],
+    [
+     "B2",
+     "122",
+     "180°",
+     "X"
+    ]
+   ]
+  },
+  "V4": {
+   "t": "Rising top-down",
+   "type": "rise",
+   "pos": [
+    505,
+    425
+   ],
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "0→10°",
+   "gb": "-90°",
+   "win": "12:00–1:30",
+   "ac": "M4E",
+   "why": "Straight up over the courtyard with a slow yaw.",
+   "wps": [
+    [
+     "B3",
+     "122",
+     "0°",
+     "S"
+    ],
+    [
+     "B4",
+     "TBD",
+     "10°",
+     "X"
+    ]
+   ]
+  },
+  "V6": {
+   "t": "Vertical social arc",
+   "type": "arc",
+   "c": [
+    245,
+    520
+   ],
+   "r": 70,
+   "p0": [
+    245,
+    590
+   ],
+   "p1": [
+    175,
+    520
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "POI",
+   "gb": "-15°",
+   "win": "5:40–6:05",
+   "ac": "M4E 9:16 crop",
+   "why": "90° arc on the SW corner, aimed by the mission POI.",
+   "wps": [
+    [
+     "B5",
+     "122",
+     "POI",
+     "S"
+    ],
+    [
+     "B6",
+     "122",
+     "POI",
+     ""
+    ],
+    [
+     "B7",
+     "122",
+     "POI",
+     "X"
+    ]
+   ]
+  },
+  "V1": {
+   "t": "Treeline reveal",
+   "type": "line",
+   "p": [
+    125,
+    445
+   ],
+   "q": [
+    228,
+    432
+   ],
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "90°",
+   "gb": "0→-10°",
+   "win": "5:30–6:00",
+   "ac": "M4E",
+   "why": "Rise over the Woodridge Dr trees toward the lit west face.",
+   "wps": [
+    [
+     "B8",
+     "122",
+     "90°",
+     "S"
+    ],
+    [
+     "B9",
+     "TBD",
+     "90°",
+     "X"
+    ]
+   ]
+  },
+  "V5": {
+   "t": "Closing pull-away",
+   "type": "line",
+   "p": [
+    330,
+    572
+   ],
+   "q": [
+    240,
+    790
+   ],
+   "back": true,
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "22°",
+   "gb": "-15→0°",
+   "win": "5:50–6:08",
+   "ac": "M4E",
+   "why": "Pull back SW facing the building, tilt to the horizon.",
+   "wps": [
+    [
+     "B10",
+     "122",
+     "22°",
+     "S"
+    ],
+    [
+     "B11",
+     "TBD",
+     "22°",
+     "X"
+    ]
+   ]
+  },
+  "T1": {
+   "t": "Roof thermal map",
+   "type": "grid",
+   "rect": [
+    240,
+    288,
+    162,
+    234
+   ],
+   "legs": 6,
+   "nadir": true,
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "Grid",
+   "gb": "-90°",
+   "win": "7–9 pm",
+   "ac": "M350 + H30T",
+   "why": "Radiometric grid over the full roof. Placeholder height."
+  },
+  "T2": {
+   "t": "Suite 100 east facade",
+   "type": "line",
+   "p": [
+    445,
+    364
+   ],
+   "q": [
+    445,
+    300
+   ],
+   "fixedHd": 270,
+   "alt": [
+    25,
+    25
+   ],
+   "hd": "270°",
+   "gb": "0°",
+   "win": "7–9 pm",
+   "ac": "M350 + H30T",
+   "why": "South to north pass, stills while recording. Placeholder height.",
+   "flashes": [
+    0.15,
+    0.4,
+    0.65,
+    0.9
+   ]
+  },
+  "V7": {
+   "t": "Mapping grid",
+   "type": "grid",
+   "rect": [
+    190,
+    240,
+    520,
+    350
+   ],
+   "legs": 8,
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "Grid",
+   "gb": "-90°",
+   "win": "11:00–1:30",
+   "ac": "M4E",
+   "why": "Orthomosaic and model of the whole site, 75/70 overlap."
+  }
+ },
+ "blocks": [
+  [
+   "11:00–12:00",
+   "Data block",
+   "Mapping grid, then the clean overhead and context frames.",
+   [
+    "V7",
+    "P3",
+    "P4"
+   ]
+  ],
+  [
+   "12:00–1:30",
+   "Suite 100 front",
+   "Entrance elevation and push-in in one battery, entry detail, then the rising top-down.",
+   [
+    "P2",
+    "V3",
+    "P5",
+    "V4"
+   ]
+  ],
+  [
+   "5:30–6:08",
+   "Golden hour",
+   "Reveal, hero bracket, the orbit (Mission A), vertical arc, close on the pull-away.",
+   [
+    "V1",
+    "P1",
+    "V2",
+    "V6",
+    "V5"
+   ]
+  ],
+  [
+   "7:00–9:00 pm",
+   "Thermal (deferred)",
+   "Roof map first, then the south-to-north pass on the east face.",
+   [
+    "T1",
+    "T2"
+   ]
+  ]
+ ],
+ "light_note": "The Suite 100 entrance faces north and gets no direct sun this time of year. Shoot it at midday, when the shade is brightest and most even.",
+ "checklist": [
+  "Airspace checked on B4UFLY or Aloft; LAANC if Class C",
+  "Takeoff from the marked spot in the Hazelwood Dr lot",
+  "RTK connected and fixed",
+  "Batteries warm (cold day), hover 30 s before climbing",
+  "Camera settings locked: white balance, shutter, ISO",
+  "Lot clear of people and moving cars under the routes",
+  "Lens and gimbal checked; ND set for video",
+  "Thermal only: after dark, strobe on, dry roof"
+ ],
+ "footnote": "Altitudes are AGL from the marked takeoff in the Hazelwood Dr lot. TBD heights are still being set. Imagery ©2026 Google, Airbus, Maxar Technologies."
+}
