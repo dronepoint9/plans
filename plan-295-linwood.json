@@ -1,0 +1,398 @@
+{
+ "id": "295-linwood",
+ "title": "295 Linwood Field Plan",
+ "address": "295 Linwood Ave, Buffalo NY",
+ "lat": 42.91061,
+ "lon": -78.86798,
+ "image": "base-295-linwood.jpg",
+ "imageSize": [
+  929,
+  895
+ ],
+ "home": [
+  530,
+  505
+ ],
+ "tbdFt": 250,
+ "lot": [
+  [
+   372,
+   421
+  ],
+  [
+   604,
+   483
+  ],
+  [
+   594,
+   529
+  ],
+  [
+   362,
+   467
+  ]
+ ],
+ "labels": [
+  {
+   "text": "↓ MEDICAL CAMPUS & DOWNTOWN",
+   "x": 470,
+   "y": 880
+  }
+ ],
+ "missions": [
+  {
+   "key": "P",
+   "tab": "Photo",
+   "name": "Drone photos",
+   "color": "photo",
+   "note": "One waypoint mission, morning. Lot lines go on in post. Keep Main St behind the camera.",
+   "shots": [
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+   ]
+  },
+  {
+   "key": "A",
+   "tab": "Orbit",
+   "name": "Mission A · Half-orbit",
+   "color": "orbit",
+   "note": "Own mission, POI on the lot center. East side only, NE to SE, so the commercial on Main St never enters the frame.",
+   "shots": [
+    "V2"
+   ]
+  },
+  {
+   "key": "B",
+   "tab": "Video",
+   "name": "Mission B · Video",
+   "color": "video",
+   "note": "Street views RJ asked for: the rise to the skyline, then north up Linwood, then south toward the Medical Campus and downtown.",
+   "shots": [
+    "V3",
+    "V4",
+    "V1"
+   ]
+  },
+  {
+   "key": "G",
+   "tab": "Ground",
+   "name": "Ground set",
+   "color": "thermal",
+   "note": "Afternoon, sun behind you. Flag the corner pins if Joe has a survey; otherwise lines go on in post.",
+   "shots": [
+    "P5",
+    "V5"
+   ]
+  },
+  {
+   "key": "M",
+   "tab": "Map",
+   "name": "Mapping",
+   "color": "map",
+   "note": "Grid mission for the ortho and model, midday when shadows are short. Nadir P3 flies right after.",
+   "shots": [
+    "D1"
+   ]
+  }
+ ],
+ "shots": {
+  "P1": {
+   "t": "Lot hero from the rear",
+   "type": "still",
+   "pos": [
+    748,
+    590
+   ],
+   "aim": [
+    430,
+    470
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "W",
+   "gb": "−30°",
+   "win": "8:00–9:30",
+   "ac": "M4E",
+   "why": "Lead listing image. Looks west over the lot to Linwood; Main St is behind the camera."
+  },
+  "P2": {
+   "t": "Linwood looking north",
+   "type": "still",
+   "pos": [
+    420,
+    712
+   ],
+   "aim": [
+    396,
+    300
+   ],
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "N",
+   "gb": "−15°",
+   "win": "8:30–10:00",
+   "ac": "M4E",
+   "why": "The street view north: the lot in front, the historic block toward W Utica."
+  },
+  "P3": {
+   "t": "Nadir lot plan",
+   "type": "nadir",
+   "pos": [
+    483,
+    475
+   ],
+   "alt": [
+    200,
+    200
+   ],
+   "hd": "N",
+   "gb": "−90°",
+   "win": "Midday",
+   "ac": "M4E",
+   "why": "For the lot-line graphic. 200 ft to fit the full depth; crop tight to the lot."
+  },
+  "P4": {
+   "t": "South to Med Campus and downtown",
+   "type": "still",
+   "pos": [
+    522,
+    622
+   ],
+   "aim": [
+    470,
+    895
+   ],
+   "alt": [
+    390,
+    390
+   ],
+   "hd": "S",
+   "gb": "−10°",
+   "win": "9:00–10:00",
+   "ac": "M4E",
+   "why": "High frame down Linwood to the Medical Campus and skyline. Label both in post."
+  },
+  "V2": {
+   "t": "Rear half-orbit",
+   "type": "halfellipse",
+   "c": [
+    483,
+    475
+   ],
+   "a": 170,
+   "b": 140,
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "POI",
+   "gb": "−20°",
+   "win": "8:00–9:30",
+   "ac": "M4E",
+   "why": "Half lap on the east side, camera locked on the lot, Linwood behind it.",
+   "wps": [
+    [
+     "A1",
+     "122",
+     "POI",
+     "S"
+    ],
+    [
+     "A2",
+     "122",
+     "POI",
+     ""
+    ],
+    [
+     "A3",
+     "122",
+     "POI",
+     "X"
+    ]
+   ]
+  },
+  "V3": {
+   "t": "Rise and tilt south",
+   "type": "riseS",
+   "pos": [
+    470,
+    466
+   ],
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "180°",
+   "gb": "−90→−10°",
+   "win": "9:00–10:00",
+   "ac": "M4E",
+   "why": "Straight down on the lot, climb, tilt up to face the skyline to the south.",
+   "wps": [
+    [
+     "B1",
+     "122",
+     "180°",
+     "S"
+    ],
+    [
+     "B2",
+     "TBD",
+     "180°",
+     "X"
+    ]
+   ]
+  },
+  "V4": {
+   "t": "North up Linwood",
+   "type": "line",
+   "p": [
+    398,
+    378
+   ],
+   "q": [
+    420,
+    170
+   ],
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "N",
+   "gb": "−15°",
+   "win": "8:30–10:00",
+   "ac": "M4E",
+   "why": "Fly north along the east sidewalk, climbing, toward W Utica.",
+   "wps": [
+    [
+     "B3",
+     "122",
+     "5°",
+     "S"
+    ],
+    [
+     "B4",
+     "TBD",
+     "5°",
+     "X"
+    ]
+   ]
+  },
+  "V1": {
+   "t": "South to downtown",
+   "type": "line",
+   "p": [
+    372,
+    470
+   ],
+   "q": [
+    322,
+    700
+   ],
+   "alt": [
+    122,
+    "TBD"
+   ],
+   "tbd": true,
+   "hd": "S",
+   "gb": "−15→−5°",
+   "win": "8:30–10:00",
+   "ac": "M4E",
+   "why": "Fly south along Linwood, climbing, so the Medical Campus and downtown rise into frame.",
+   "wps": [
+    [
+     "B5",
+     "122",
+     "192°",
+     "S"
+    ],
+    [
+     "B6",
+     "TBD",
+     "192°",
+     "X"
+    ]
+   ]
+  },
+  "P5": {
+   "t": "Ground-level set",
+   "type": "still",
+   "ground": true,
+   "pos": [
+    300,
+    455
+   ],
+   "aim": [
+    480,
+    470
+   ],
+   "alt": [
+    5,
+    5
+   ],
+   "hd": "E",
+   "gb": "0°",
+   "win": "2:30–4:00",
+   "ac": "Camera",
+   "why": "Frontage from both sidewalks and up and down the street, corners flagged or lines in post."
+  },
+  "V5": {
+   "t": "Vertical social clip",
+   "type": "pedestal",
+   "pos": [
+    298,
+    545
+   ],
+   "alt": [
+    10,
+    122
+   ],
+   "hd": "S",
+   "gb": "−10°",
+   "win": "2:30–4:00",
+   "ac": "Mini 4 Pro 9:16",
+   "why": "Rise from the west sidewalk facing south down Linwood, the lot passing below."
+  },
+  "D1": {
+   "t": "Lot ortho and model",
+   "type": "grid",
+   "rect": [
+    330,
+    385,
+    330,
+    200
+   ],
+   "legs": 8,
+   "alt": [
+    122,
+    122
+   ],
+   "hd": "Grid",
+   "gb": "−90°",
+   "win": "11:30–12:30",
+   "ac": "M4E",
+   "why": "Ortho of the lot and neighbors with parcel lines, model of the adjoining houses."
+  }
+ },
+ "blocks": [],
+ "light_note": "Drone in the morning (8 to 10): cameras look west over the lot with the sun behind them and Main St behind the camera. Map at 11:30. Ground photos in the afternoon (2:30 to 4), looking east from the Linwood sidewalks with the sun behind you.",
+ "checklist": [
+  "Airspace checked on B4UFLY or Aloft",
+  "Hunt OK to take off from the lot, in writing",
+  "Neighbors told (houses close both sides, pool to the south)",
+  "Corner pins: flagged if found, otherwise lines in post",
+  "RTK connected and fixed",
+  "Main St behind every camera; no full orbit",
+  "Linwood moves over the sidewalk, in traffic gaps",
+  "Camera settings locked: white balance, shutter, ISO",
+  "Batteries warm, hover 30 s before climbing"
+ ],
+ "footnote": "Altitudes are AGL from takeoff on the lot. Lot lines are approximate, traced from imagery; pull the Erie County parcel before marking photos. TBD heights are still being set. Imagery ©2026 Google, Airbus, Maxar Technologies."
+}

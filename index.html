@@ -195,9 +195,10 @@ async function getJSON(u){const r=await fetch(u,{cache:"no-cache"});if(!r.ok)thr
       return;
     }
     $("back").href="./";$("back").innerHTML="&lsaquo; Sites";
-    let base="sites/"+siteId+"/", plan;
-    try{ plan=await getJSON(base+"plan.json"); }
-    catch(e){ base=""; plan=await getJSON("plan.json"); }
+    const list=await getJSON("sites.json");
+    const entry=(list.sites||[]).find(x=>x.id===siteId);
+    if(!entry)throw new Error("unknown site "+siteId);
+    const base="", plan=await getJSON(entry.plan||("plan-"+siteId+".json"));
     $("planView").hidden=false;
     document.title=plan.title+" — DronePoint";
     startPlan(plan,base);
@@ -225,6 +226,10 @@ const h=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setA
 h("image",{href:SITE,x:0,y:0,width:IW,height:IH,preserveAspectRatio:"none"});
 h("rect",{width:IW,height:IH,fill:"rgba(10,18,20,.22)"});
 const defs=h("defs",{});
+if(plan.lot){const d="M"+plan.lot.map(p=>p.join(" ")).join(" L")+"Z";
+  h("path",{d,fill:"rgba(255,106,42,.22)",stroke:"#0b1214","stroke-width":9,"stroke-opacity":.55});
+  h("path",{d,fill:"none",stroke:"#fff","stroke-width":4,"stroke-dasharray":"14 9"})}
+(plan.labels||[]).forEach(l=>{const t=h("text",{x:l.x,y:l.y,"text-anchor":"middle","font-family":"Barlow Condensed,sans-serif","font-weight":700,"font-size":30,fill:"#fff",stroke:"#0b1214","stroke-width":6,"paint-order":"stroke"});t.textContent=l.text});
 const staticG=h("g",{}),trailG=h("g",{}),markG=h("g",{}),fxG=h("g",{});
 function arrowFor(hex){const id="a"+hex.slice(1);if(!document.getElementById(id)){const m=h("marker",{id,viewBox:"0 0 10 10",refX:6,refY:5,markerWidth:4,markerHeight:4,orient:"auto"},defs);h("path",{d:"M0,0 L10,5 L0,10z",fill:hex},m)}return`url(#${id})`}
 const halo=(d,hex,w,dash,g)=>{h("path",{d,fill:"none",stroke:"#0b1214","stroke-width":w+5,"stroke-opacity":.6,"stroke-linecap":"round"},g);return h("path",{d,fill:"none",stroke:hex,"stroke-width":w,"stroke-dasharray":dash||"","stroke-linecap":"round"},g)};
@@ -240,11 +245,15 @@ function drawStatic(id,hex){const s=S[id];const g=h("g",{},staticG);
     [1.25,1.75,.25,.75].forEach((k,i)=>{const[x,y]=ellPt(s,k*Math.PI);h("circle",{cx:x,cy:y,r:17,fill:"#0b1214",stroke:hex,"stroke-width":3},g);const t=h("text",{x,y:y+6,"text-anchor":"middle","font-family":"JetBrains Mono,monospace","font-weight":700,"font-size":16,fill:"#fff"},g);t.textContent="A"+(i+1)});
     poiMark(s.c,g)}
   if(s.type==="arc"){halo(`M${s.p0} A${s.r},${s.r} 0 0 1 ${s.p1}`,hex,7,"",g).setAttribute("marker-end",arrowFor(hex));poiMark(s.c,g)}
+  if(s.type==="halfellipse"){const p0=ellPt(s,-Math.PI/3),p1=ellPt(s,Math.PI/3);halo(`M${p0} A${s.a},${s.b} 0 0 1 ${p1}`,hex,6,"16 10",g).setAttribute("marker-end",arrowFor(hex));
+    [-Math.PI/3,0,Math.PI/3].forEach((k,i)=>{const[x,y]=ellPt(s,k);h("circle",{cx:x,cy:y,r:17,fill:"#0b1214",stroke:hex,"stroke-width":3},g);const t=h("text",{x,y:y+6,"text-anchor":"middle","font-family":"JetBrains Mono,monospace","font-weight":700,"font-size":15,fill:"#fff"},g);t.textContent="A"+(i+1)});
+    poiMark(s.c,g)}
+  if(s.type==="riseS"||s.type==="pedestal"){[34,46].forEach(r=>h("circle",{cx:s.pos[0],cy:s.pos[1],r,fill:"none",stroke:hex,"stroke-width":4},g));h("path",{d:`M${s.pos[0]},${s.pos[1]+50} l0,40`,stroke:hex,"stroke-width":6,"marker-end":arrowFor(hex)},g)}
   if(s.type==="grid"){halo("M"+gridPts(s.rect,s.legs).join(" L"),hex,4,"",g)}
 }
 function poiMark(p,g){h("circle",{cx:p[0],cy:p[1],r:14,fill:"none",stroke:"#fff","stroke-width":3.5},g);h("path",{d:`M${p[0]-22},${p[1]}h44M${p[0]},${p[1]-22}v44`,stroke:"#fff","stroke-width":3},g)}
-function startPt(s){return s.type==="line"?s.p:s.type==="arc"?s.p0:s.type==="ellipse"?ellPt(s,1.25*Math.PI):s.type==="grid"?gridPts(s.rect,s.legs)[0]:s.pos}
-function drawMarker(id,hex){const s=S[id],[x,y]=s.type==="ellipse"?ellPt(s,0):startPt(s);const g=h("g",{"data-id":id,style:"cursor:pointer"},markG);
+function startPt(s){return s.type==="halfellipse"?ellPt(s,-Math.PI/3):s.type==="line"?s.p:s.type==="arc"?s.p0:s.type==="ellipse"?ellPt(s,1.25*Math.PI):s.type==="grid"?gridPts(s.rect,s.legs)[0]:s.pos}
+function drawMarker(id,hex){const s=S[id],[x,y]=s.type==="ellipse"?ellPt(s,0):s.type==="halfellipse"?ellPt(s,-Math.PI/6):startPt(s);const g=h("g",{"data-id":id,style:"cursor:pointer"},markG);
   h("circle",{cx:x,cy:y,r:26,fill:"#fff",stroke:hex,"stroke-width":6},g);const t=h("text",{x,y:y+8,"text-anchor":"middle","font-family":"Barlow Condensed,sans-serif","font-weight":700,"font-size":24,fill:"#111618"},g);t.textContent=id;
   g.addEventListener("click",()=>playShot(id))}
 // home
@@ -272,6 +281,9 @@ function motion(id){const s=S[id],[a0,a1]=s.alt;
    case "rise":return{dur:3.2,f:u=>({x:s.pos[0],y:s.pos[1],h:-Math.PI/2+u*.35,alt:lerp(a0,a1,ease(u)),nadir:true})};
    case "ellipse":return{dur:10,f:u=>{const t=1.25*Math.PI+u*2*Math.PI,[x,y]=ellPt(s,t);return{x,y,h:Math.atan2(s.c[1]-y,s.c[0]-x),alt:a0}}};
    case "arc":return{dur:2.8,f:u=>{const t=Math.PI/2+ease(u)*Math.PI/2;return{x:s.c[0]+s.r*Math.cos(t),y:s.c[1]+s.r*Math.sin(t),h:t+Math.PI,alt:a0}}};
+   case "halfellipse":return{dur:6,f:u=>{const t=-Math.PI/3+u*2*Math.PI/3,[x,y]=ellPt(s,t);return{x,y,h:Math.atan2(s.c[1]-y,s.c[0]-x),alt:a0}}};
+   case "riseS":return{dur:3.4,f:u=>({x:s.pos[0],y:s.pos[1],h:Math.PI/2,alt:lerp(a0,a1,ease(u)),nadir:u<.45})};
+   case "pedestal":return{dur:2.8,f:u=>({x:s.pos[0],y:s.pos[1],h:Math.PI/2,alt:lerp(a0,a1,ease(u))})};
    case "grid":{const pts=gridPts(s.rect,s.legs);return{dur:7,poly:pts,f:u=>{const q=poly(pts,u);return{...q,alt:a0,nadir:!!s.nadir}}}}
   }}
 let seq=[],t=0,total=0,playing=false,last=0,fx=[],curId=null;
@@ -283,7 +295,7 @@ function build(ids,withHome){const out=[];let cur=HOME.slice(),ca=0;
   return out}
 function setTrails(){trailG.innerHTML="";seq.forEach(s=>{const hex=s.id?missionOf(s.id).hex:"#e8eef0";s.pl=h("polyline",{points:"",fill:"none",stroke:hex,"stroke-width":s.id?6:3,"stroke-dasharray":s.id?"":"8 9","stroke-linecap":"round","stroke-linejoin":"round"},trailG)})}
 const hudTxt=document.getElementById("hudTxt"),hudAlt=document.getElementById("hudAlt"),bar=document.getElementById("bar");
-function altLabel(id,a){const s=id&&S[id];if(s&&s.tbd&&a>122.5)return"122 ft + rise (TBD)";return Math.round(a)+" ft"}
+function altLabel(id,a){const s=id&&S[id];if(s&&s.ground)return"eye level";if(s&&s.tbd&&a>s.alt[0]+.5)return s.alt[0]+" ft + rise (TBD)";return Math.round(a)+" ft"}
 function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[i].dur;i++}
   const sg=seq[i],u=Math.min(1,Math.max(0,(t-acc)/sg.dur)),st=sg.f(u);
   seq.forEach((s,k)=>{let uu=k<i?1:k===i?u:0;if(uu<=0){s.pl.setAttribute("points","");return}
@@ -332,6 +344,7 @@ function selectTab(key){active=MISSIONS.find(m=>m.key===key);playing=false;drone
 selectTab(MISSIONS[0].key);
 
 // day plan blocks
+$("blocks").closest(".sect").hidden=!(plan.blocks&&plan.blocks.length);
 $("blocks").innerHTML=(plan.blocks||[]).map(([t,n,d,ids])=>`<div class="blk"><div class="t">${esc(t)}</div><div><div class="n">${esc(n)}</div><div class="d">${esc(d)}</div>${ids.map(i=>`<span class="tg" style="--c:${missionOf(i)?missionOf(i).hex:"#999"}">${esc(i)}</span>`).join("")}</div></div>`).join("");
 
 // sun

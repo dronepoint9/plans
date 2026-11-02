@@ -4,7 +4,15 @@
    "id": "15-hazelwood",
    "title": "15 Hazelwood",
    "address": "15 Hazelwood Dr, Amherst NY",
-   "desc": "Marketing photo, video and mapping shots"
+   "desc": "Marketing photo, video and mapping shots",
+   "plan": "plan.json"
+  },
+  {
+   "id": "295-linwood",
+   "title": "295 Linwood",
+   "address": "295 Linwood Ave, Buffalo NY",
+   "desc": "Hunt listing: drone, video, ground and mapping shots",
+   "plan": "plan-295-linwood.json"
   }
  ]
 }
