@@ -224,6 +224,19 @@ const FPW=1.4, FPR=.75;
 const _n=Object.values(S).find(x=>x.type==="nadir");
 const PXFT=plan.pxPerFt||(_n?300/(FPW*_n.alt[0]):1);
 const footW=a=>FPW*a*PXFT;
+// Ground area the camera sees, from altitude, heading and gimbal pitch (degrees, -90 = straight down).
+// M4E wide: 4:3 frame, 84 deg diagonal. Rays that miss the ground are cut off at FAR_FT.
+const TX=.7203, TY=.5402, FAR_FT=450;
+function frustumPts(cx,cy,yaw,alt,pitchDeg){
+  const th=-pitchDeg*Math.PI/180, cy_=Math.cos(yaw), sy_=Math.sin(yaw), ct=Math.cos(th), st_=Math.sin(th);
+  const f=[ct*cy_,ct*sy_,-st_], r=[-sy_,cy_,0], u=[st_*cy_,st_*sy_,ct];
+  return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>{
+    const d=[f[0]+a*TX*r[0]+b*TY*u[0], f[1]+a*TX*r[1]+b*TY*u[1], f[2]+a*TX*r[2]+b*TY*u[2]];
+    let ox,oy;
+    if(d[2]<-.02){const t=alt/-d[2];ox=t*d[0];oy=t*d[1]}else{ox=d[0];oy=d[1]}
+    const m=Math.hypot(ox,oy)||1,k=m>FAR_FT||d[2]>=-.02?FAR_FT/m:1;
+    return [cx+ox*k*PXFT, cy+oy*k*PXFT]});
+}
 const missionOf=id=>MISSIONS.find(m=>m.shots.includes(id));
 
 // ---------- map ----------
@@ -269,7 +282,7 @@ const na=h("g",{transform:`translate(${IW-49},52)`});h("circle",{r:30,fill:"rgba
 
 // drone
 const drone=h("g",{style:"pointer-events:none;display:none"});
-const foot=h("rect",{"fill-opacity":.2,"stroke-width":4,"stroke-dasharray":"14 9",style:"display:none"},footG);
+const foot=h("path",{"fill-opacity":.2,"stroke-linejoin":"round","stroke-width":4,"stroke-dasharray":"14 9",style:"display:none"},footG);
 const cone=h("path",{d:"M0,0 L95,-36 A100,100 0 0 1 95,36Z","fill-opacity":.35,"stroke-width":2},drone);
 h("path",{d:"M-15,-15 L15,15 M-15,15 L15,-15",stroke:"#0b1214","stroke-width":6},drone);
 [[-15,-15],[15,-15],[-15,15],[15,15]].forEach(([x,y])=>h("circle",{cx:x,cy:y,r:9,fill:"rgba(255,255,255,.92)",stroke:"#0b1214","stroke-width":3},drone));
@@ -289,7 +302,7 @@ function motion(id){const s=S[id],[a0,a1]=s.alt;
    case "ellipse":return{dur:10,f:u=>{const t=1.25*Math.PI+u*2*Math.PI,[x,y]=ellPt(s,t);return{x,y,h:Math.atan2(s.c[1]-y,s.c[0]-x),alt:a0}}};
    case "arc":return{dur:2.8,f:u=>{const t=Math.PI/2+ease(u)*Math.PI/2;return{x:s.c[0]+s.r*Math.cos(t),y:s.c[1]+s.r*Math.sin(t),h:t+Math.PI,alt:a0}}};
    case "halfellipse":return{dur:6,f:u=>{const t=-Math.PI/3+u*2*Math.PI/3,[x,y]=ellPt(s,t);return{x,y,h:Math.atan2(s.c[1]-y,s.c[0]-x),alt:a0}}};
-   case "riseS":return{dur:3.4,f:u=>({x:s.pos[0],y:s.pos[1],h:Math.PI/2,alt:lerp(a0,a1,ease(u)),nadir:u<.45})};
+   case "riseS":{const pp=s.pitch||[-90,-10];return{dur:3.4,f:u=>({x:s.pos[0],y:s.pos[1],h:Math.PI/2,alt:lerp(a0,a1,ease(u)),pitch:lerp(pp[0],pp[1],ease(Math.min(1,Math.max(0,(u-.3)/.6))))})}}
    case "pedestal":return{dur:2.8,f:u=>({x:s.pos[0],y:s.pos[1],h:Math.PI/2,alt:lerp(a0,a1,ease(u))})};
    case "grid":{const pts=gridPts(s.rect,s.legs);return{dur:7,poly:pts,f:u=>{const q=poly(pts,u);return{...q,alt:a0,nadir:!!s.nadir}}}}
   }}
@@ -310,8 +323,9 @@ function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[
     const n=Math.max(2,Math.round(uu*50)),pp=[];for(let j=0;j<=n;j++){const q=s.f(uu*j/n);pp.push(q.x.toFixed(1)+","+q.y.toFixed(1))}s.pl.setAttribute("points",pp.join(" "))});
   const hex=sg.id?missionOf(sg.id).hex:"#ffffff",sc=.8+st.alt/400*.7;
   drone.style.display="";drone.setAttribute("transform",`translate(${st.x},${st.y}) rotate(${st.h*180/Math.PI}) scale(${sc})`);
-  cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);cone.style.display=st.nadir?"none":"";
-  if(st.nadir&&st.alt>2){const fw=footW(st.alt),fh=fw*FPR;foot.setAttribute("x",st.x-fw/2);foot.setAttribute("y",st.y-fh/2);foot.setAttribute("width",fw);foot.setAttribute("height",fh);foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display=""}else foot.style.display="none";
+  cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);cone.style.display=(st.nadir||st.pitch!=null)?"none":"";
+  const pitch=st.pitch!=null?st.pitch:(st.nadir?-90:null);
+  if(pitch!=null&&st.alt>2){foot.setAttribute("d","M"+frustumPts(st.x,st.y,st.h,st.alt,pitch).map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L")+"Z");foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display="";cone.style.display="none"}else foot.style.display="none";
   (sg.flashes||[]).forEach((f,k)=>{if(u>=f&&!sg["f"+k]){sg["f"+k]=1;fx.push({t0:performance.now(),el:h("circle",{cx:st.x,cy:st.y,r:6,fill:"none",stroke:"#fff","stroke-width":6},fxG)})}});
   if(sg.id!==curId){curId=sg.id;markCard(sg.id)}
   hudTxt.innerHTML=sg.land?"<b>Landed</b>":sg.id?`<b>${sg.id}</b> ${esc(S[sg.id].t)}`:"<b>Repositioning</b>";
