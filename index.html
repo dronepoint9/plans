@@ -224,6 +224,12 @@ const FPW=1.4, FPR=.75;
 const _n=Object.values(S).find(x=>x.type==="nadir");
 const PXFT=plan.pxPerFt||(_n?300/(FPW*_n.alt[0]):1);
 const footW=a=>FPW*a*PXFT;
+// Convex hull (monotone chain): joins the drone to the ground area it sees so the view never detaches.
+function hull(P){P=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[];for(const p of P){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p)}
+  for(const p of P.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p)}
+  return lo.slice(0,-1).concat(up.slice(0,-1))}
+const pathOf=P=>"M"+P.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L")+"Z";
 // Ground area the camera sees, from altitude, heading and gimbal pitch (degrees, -90 = straight down).
 // M4E wide: 4:3 frame, 84 deg diagonal. Rays that miss the ground are cut off at FAR_FT.
 const TX=.7203, TY=.5402, FAR_FT=450;
@@ -282,7 +288,8 @@ const na=h("g",{transform:`translate(${IW-49},52)`});h("circle",{r:30,fill:"rgba
 
 // drone
 const drone=h("g",{style:"pointer-events:none;display:none"});
-const foot=h("path",{"fill-opacity":.2,"stroke-linejoin":"round","stroke-width":4,"stroke-dasharray":"14 9",style:"display:none"},footG);
+const footQ=h("path",{"fill-opacity":.28,"stroke-width":3,"stroke-linejoin":"round",style:"display:none"},footG);
+const foot=h("path",{"fill-opacity":.16,"stroke-linejoin":"round","stroke-width":4,"stroke-dasharray":"14 9",style:"display:none"},footG);
 const cone=h("path",{d:"M0,0 L95,-36 A100,100 0 0 1 95,36Z","fill-opacity":.35,"stroke-width":2},drone);
 h("path",{d:"M-15,-15 L15,15 M-15,15 L15,-15",stroke:"#0b1214","stroke-width":6},drone);
 [[-15,-15],[15,-15],[-15,15],[15,15]].forEach(([x,y])=>h("circle",{cx:x,cy:y,r:9,fill:"rgba(255,255,255,.92)",stroke:"#0b1214","stroke-width":3},drone));
@@ -325,7 +332,9 @@ function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[
   drone.style.display="";drone.setAttribute("transform",`translate(${st.x},${st.y}) rotate(${st.h*180/Math.PI}) scale(${sc})`);
   cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);cone.style.display=(st.nadir||st.pitch!=null)?"none":"";
   const pitch=st.pitch!=null?st.pitch:(st.nadir?-90:null);
-  if(pitch!=null&&st.alt>2){foot.setAttribute("d","M"+frustumPts(st.x,st.y,st.h,st.alt,pitch).map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L")+"Z");foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display="";cone.style.display="none"}else foot.style.display="none";
+  if(pitch!=null&&st.alt>2){const Q=frustumPts(st.x,st.y,st.h,st.alt,pitch);
+    foot.setAttribute("d",pathOf(hull(Q.concat([[st.x,st.y]]))));foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display="";
+    footQ.setAttribute("d",pathOf(Q));footQ.setAttribute("fill",hex);footQ.setAttribute("stroke",hex);footQ.style.display="";cone.style.display="none"}else{foot.style.display="none";footQ.style.display="none"}
   (sg.flashes||[]).forEach((f,k)=>{if(u>=f&&!sg["f"+k]){sg["f"+k]=1;fx.push({t0:performance.now(),el:h("circle",{cx:st.x,cy:st.y,r:6,fill:"none",stroke:"#fff","stroke-width":6},fxG)})}});
   if(sg.id!==curId){curId=sg.id;markCard(sg.id)}
   hudTxt.innerHTML=sg.land?"<b>Landed</b>":sg.id?`<b>${sg.id}</b> ${esc(S[sg.id].t)}`:"<b>Repositioning</b>";
@@ -343,7 +352,7 @@ const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"
 MISSIONS.forEach(m=>{const b=document.createElement("button");b.role="tab";b.id="tab-"+m.key;b.textContent=m.tab;b.style.setProperty("--c",m.c);b.setAttribute("aria-selected","false");b.addEventListener("click",()=>selectTab(m.key));tabs.appendChild(b)});
 function markCard(id){panel.querySelectorAll(".card").forEach(c=>c.classList.toggle("on",c.dataset.id===id))}
 const playIcon='<svg width="14" height="14" viewBox="0 0 12 12"><path d="M2 1 L11 6 L2 11Z" fill="currentColor"/></svg>';
-function selectTab(key){active=MISSIONS.find(m=>m.key===key);playing=false;drone.style.display="none";foot.style.display="none";trailG.innerHTML="";fxG.innerHTML="";bar.style.width="0";
+function selectTab(key){active=MISSIONS.find(m=>m.key===key);playing=false;drone.style.display="none";foot.style.display="none";footQ.style.display="none";trailG.innerHTML="";fxG.innerHTML="";bar.style.width="0";
   tabs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.id==="tab-"+key));
   staticG.innerHTML="";markG.innerHTML="";active.shots.forEach(id=>drawStatic(id,active.hex));drawHome();active.shots.forEach(id=>drawMarker(id,active.hex));
   hudTxt.innerHTML=`<b>${esc(active.name)}</b>`;hudAlt.textContent=active.shots.length+(active.shots.length>1?" shots":" shot");
