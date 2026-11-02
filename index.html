@@ -218,6 +218,12 @@ const COLORS={photo:["var(--photo)","#ff6a2a"],orbit:["var(--orbit)","#2fd8f0"],
 const MISSIONS=plan.missions.map(m=>({...m,c:COLORS[m.color][0],hex:COLORS[m.color][1]}));
 const S=JSON.parse(JSON.stringify(plan.shots));
 Object.values(S).forEach(s=>{s.alt=s.alt.map(v=>v==="TBD"?TBD:v)});
+// Top-down footprint: ~1.4 x altitude wide (M4E wide camera, 4:3). Scale px/ft comes from the plan,
+// or is calibrated so the first nadir frame is drawn 300 px wide as before.
+const FPW=1.4, FPR=.75;
+const _n=Object.values(S).find(x=>x.type==="nadir");
+const PXFT=plan.pxPerFt||(_n?300/(FPW*_n.alt[0]):1);
+const footW=a=>FPW*a*PXFT;
 const missionOf=id=>MISSIONS.find(m=>m.shots.includes(id));
 
 // ---------- map ----------
@@ -230,14 +236,14 @@ if(plan.lot){const d="M"+plan.lot.map(p=>p.join(" ")).join(" L")+"Z";
   h("path",{d,fill:"rgba(255,106,42,.22)",stroke:"#0b1214","stroke-width":9,"stroke-opacity":.55});
   h("path",{d,fill:"none",stroke:"#fff","stroke-width":4,"stroke-dasharray":"14 9"})}
 (plan.labels||[]).forEach(l=>{const t=h("text",{x:l.x,y:l.y,"text-anchor":"middle","font-family":"Barlow Condensed,sans-serif","font-weight":700,"font-size":30,fill:"#fff",stroke:"#0b1214","stroke-width":6,"paint-order":"stroke"});t.textContent=l.text});
-const staticG=h("g",{}),trailG=h("g",{}),markG=h("g",{}),fxG=h("g",{});
+const staticG=h("g",{}),trailG=h("g",{}),footG=h("g",{}),markG=h("g",{}),fxG=h("g",{});
 function arrowFor(hex){const id="a"+hex.slice(1);if(!document.getElementById(id)){const m=h("marker",{id,viewBox:"0 0 10 10",refX:6,refY:5,markerWidth:4,markerHeight:4,orient:"auto"},defs);h("path",{d:"M0,0 L10,5 L0,10z",fill:hex},m)}return`url(#${id})`}
 const halo=(d,hex,w,dash,g)=>{h("path",{d,fill:"none",stroke:"#0b1214","stroke-width":w+5,"stroke-opacity":.6,"stroke-linecap":"round"},g);return h("path",{d,fill:"none",stroke:hex,"stroke-width":w,"stroke-dasharray":dash||"","stroke-linecap":"round"},g)};
 const gridPts=(r,l)=>{const[x,y,w,hh]=r,p=[];for(let i=0;i<=l;i++){const xx=x+i*w/l;i%2?p.push([xx,y+hh],[xx,y]):p.push([xx,y],[xx,y+hh])}return p};
 const ellPt=(s,t)=>[s.c[0]+s.a*Math.cos(t),s.c[1]+s.b*Math.sin(t)];
 function drawStatic(id,hex){const s=S[id];const g=h("g",{},staticG);
   if(s.type==="still"){const[x,y]=s.pos,[ax,ay]=s.aim,a=Math.atan2(ay-y,ax-x),L=120,w=.38;h("path",{d:`M${x},${y} L${x+L*Math.cos(a-w)},${y+L*Math.sin(a-w)} A${L},${L} 0 0 1 ${x+L*Math.cos(a+w)},${y+L*Math.sin(a+w)}Z`,fill:hex,"fill-opacity":.3,stroke:hex,"stroke-width":3},g)}
-  if(s.type==="nadir"){h("rect",{x:s.pos[0]-150,y:s.pos[1]-110,width:300,height:220,fill:"none",stroke:hex,"stroke-width":4,"stroke-dasharray":"14 9"},g)}
+  if(s.type==="nadir"){const fw=footW(s.alt[0]),fh=fw*FPR;h("rect",{x:s.pos[0]-fw/2,y:s.pos[1]-fh/2,width:fw,height:fh,fill:"none",stroke:hex,"stroke-width":4,"stroke-dasharray":"14 9"},g)}
   if(s.type==="context"){[[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dy])=>{const d=`M${s.pos[0]+dx*30},${s.pos[1]+dy*30} L${s.pos[0]+dx*70},${s.pos[1]+dy*70}`;h("path",{d,stroke:hex,"stroke-width":6,"marker-end":arrowFor(hex)},g)})}
   if(s.type==="line"){halo(`M${s.p} L${s.q}`,hex,7,"",g).setAttribute("marker-end",arrowFor(hex))}
   if(s.type==="rise"){[26,40].forEach(r=>h("circle",{cx:s.pos[0],cy:s.pos[1],r,fill:"none",stroke:hex,"stroke-width":4},g))}
@@ -263,6 +269,7 @@ const na=h("g",{transform:`translate(${IW-49},52)`});h("circle",{r:30,fill:"rgba
 
 // drone
 const drone=h("g",{style:"pointer-events:none;display:none"});
+const foot=h("rect",{"fill-opacity":.2,"stroke-width":4,"stroke-dasharray":"14 9",style:"display:none"},footG);
 const cone=h("path",{d:"M0,0 L95,-36 A100,100 0 0 1 95,36Z","fill-opacity":.35,"stroke-width":2},drone);
 h("path",{d:"M-15,-15 L15,15 M-15,15 L15,-15",stroke:"#0b1214","stroke-width":6},drone);
 [[-15,-15],[15,-15],[-15,15],[15,15]].forEach(([x,y])=>h("circle",{cx:x,cy:y,r:9,fill:"rgba(255,255,255,.92)",stroke:"#0b1214","stroke-width":3},drone));
@@ -304,6 +311,7 @@ function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[
   const hex=sg.id?missionOf(sg.id).hex:"#ffffff",sc=.8+st.alt/400*.7;
   drone.style.display="";drone.setAttribute("transform",`translate(${st.x},${st.y}) rotate(${st.h*180/Math.PI}) scale(${sc})`);
   cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);cone.style.display=st.nadir?"none":"";
+  if(st.nadir&&st.alt>2){const fw=footW(st.alt),fh=fw*FPR;foot.setAttribute("x",st.x-fw/2);foot.setAttribute("y",st.y-fh/2);foot.setAttribute("width",fw);foot.setAttribute("height",fh);foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display=""}else foot.style.display="none";
   (sg.flashes||[]).forEach((f,k)=>{if(u>=f&&!sg["f"+k]){sg["f"+k]=1;fx.push({t0:performance.now(),el:h("circle",{cx:st.x,cy:st.y,r:6,fill:"none",stroke:"#fff","stroke-width":6},fxG)})}});
   if(sg.id!==curId){curId=sg.id;markCard(sg.id)}
   hudTxt.innerHTML=sg.land?"<b>Landed</b>":sg.id?`<b>${sg.id}</b> ${esc(S[sg.id].t)}`:"<b>Repositioning</b>";
@@ -321,7 +329,7 @@ const tabs=document.getElementById("tabs"),panel=document.getElementById("panel"
 MISSIONS.forEach(m=>{const b=document.createElement("button");b.role="tab";b.id="tab-"+m.key;b.textContent=m.tab;b.style.setProperty("--c",m.c);b.setAttribute("aria-selected","false");b.addEventListener("click",()=>selectTab(m.key));tabs.appendChild(b)});
 function markCard(id){panel.querySelectorAll(".card").forEach(c=>c.classList.toggle("on",c.dataset.id===id))}
 const playIcon='<svg width="14" height="14" viewBox="0 0 12 12"><path d="M2 1 L11 6 L2 11Z" fill="currentColor"/></svg>';
-function selectTab(key){active=MISSIONS.find(m=>m.key===key);playing=false;drone.style.display="none";trailG.innerHTML="";fxG.innerHTML="";bar.style.width="0";
+function selectTab(key){active=MISSIONS.find(m=>m.key===key);playing=false;drone.style.display="none";foot.style.display="none";trailG.innerHTML="";fxG.innerHTML="";bar.style.width="0";
   tabs.querySelectorAll("button").forEach(b=>b.setAttribute("aria-selected",b.id==="tab-"+key));
   staticG.innerHTML="";markG.innerHTML="";active.shots.forEach(id=>drawStatic(id,active.hex));drawHome();active.shots.forEach(id=>drawMarker(id,active.hex));
   hudTxt.innerHTML=`<b>${esc(active.name)}</b>`;hudAlt.textContent=active.shots.length+(active.shots.length>1?" shots":" shot");
