@@ -217,6 +217,8 @@ $("map").setAttribute("viewBox","0 0 "+IW+" "+IH);
 const COLORS={photo:["var(--photo)","#ff6a2a"],orbit:["var(--orbit)","#2fd8f0"],video:["var(--video)","#2fd8f0"],thermal:["var(--thermal)","#ff4fb0"],map:["var(--map)","#a596ff"]};
 const MISSIONS=plan.missions.map(m=>({...m,c:COLORS[m.color][0],hex:COLORS[m.color][1]}));
 const S=JSON.parse(JSON.stringify(plan.shots));
+const SCH_ALT=50, SCH_FAR=125;   // schematic size: a small indicator on the drone, not a measured footprint
+Object.values(S).forEach(s=>{const n=(String(s.gb||"").replace(/[\u2212\u2013]/g,"-").match(/-?\d+/g)||[]).map(Number);s.gbv=n.length?[n[0],n[n.length-1]]:null});
 Object.values(S).forEach(s=>{s.alt=s.alt.map(v=>v==="TBD"?TBD:v)});
 // Top-down footprint: ~1.4 x altitude wide (M4E wide camera, 4:3). Scale px/ft comes from the plan,
 // or is calibrated so the first nadir frame is drawn 300 px wide as before.
@@ -233,15 +235,15 @@ const pathOf=P=>"M"+P.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L")+"Z"
 // Ground area the camera sees, from altitude, heading and gimbal pitch (degrees, -90 = straight down).
 // M4E wide: 4:3 frame, 84 deg diagonal. Rays that miss the ground are cut off at FAR_FT.
 const TX=.7203, TY=.5402, FAR_FT=450;
-function frustumPts(cx,cy,yaw,alt,pitchDeg){
+function frustumPts(cx,cy,yaw,alt,pitchDeg,scale,far){scale=scale||PXFT;far=far||FAR_FT;
   const th=-pitchDeg*Math.PI/180, cy_=Math.cos(yaw), sy_=Math.sin(yaw), ct=Math.cos(th), st_=Math.sin(th);
   const f=[ct*cy_,ct*sy_,-st_], r=[-sy_,cy_,0], u=[st_*cy_,st_*sy_,ct];
   return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>{
     const d=[f[0]+a*TX*r[0]+b*TY*u[0], f[1]+a*TX*r[1]+b*TY*u[1], f[2]+a*TX*r[2]+b*TY*u[2]];
     let ox,oy;
     if(d[2]<-.02){const t=alt/-d[2];ox=t*d[0];oy=t*d[1]}else{ox=d[0];oy=d[1]}
-    const m=Math.hypot(ox,oy)||1,k=m>FAR_FT||d[2]>=-.02?FAR_FT/m:1;
-    return [cx+ox*k*PXFT, cy+oy*k*PXFT]});
+    const m=Math.hypot(ox,oy)||1,k=m>far||d[2]>=-.02?far/m:1;
+    return [cx+ox*k*scale, cy+oy*k*scale]});
 }
 const missionOf=id=>MISSIONS.find(m=>m.shots.includes(id));
 
@@ -330,12 +332,12 @@ function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[
     const n=Math.max(2,Math.round(uu*50)),pp=[];for(let j=0;j<=n;j++){const q=s.f(uu*j/n);pp.push(q.x.toFixed(1)+","+q.y.toFixed(1))}s.pl.setAttribute("points",pp.join(" "))});
   const hex=sg.id?missionOf(sg.id).hex:"#ffffff",sc=.8+st.alt/400*.7;
   drone.style.display="";drone.setAttribute("transform",`translate(${st.x},${st.y}) rotate(${st.h*180/Math.PI}) scale(${sc})`);
-  cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);cone.style.display=(st.nadir||st.pitch!=null)?"none":"";
-  const pitch=st.pitch!=null?st.pitch:(st.nadir?-90:null);
-  if(pitch!=null&&st.alt>2){const Q=frustumPts(st.x,st.y,st.h,st.alt,pitch);
+  cone.setAttribute("fill",hex);cone.setAttribute("stroke",hex);body.setAttribute("fill",hex);
+  const gv=sg.id&&S[sg.id].gbv;
+  const pitch=st.pitch!=null?st.pitch:(gv?lerp(gv[0],gv[1],u):(st.nadir?-90:null));
+  if(pitch!=null){const Q=frustumPts(st.x,st.y,st.h,SCH_ALT,pitch,1,SCH_FAR);
     foot.setAttribute("d",pathOf(hull(Q.concat([[st.x,st.y]]))));foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display="";
-    footQ.setAttribute("d",pathOf(Q));footQ.setAttribute("fill",hex);footQ.setAttribute("stroke",hex);footQ.style.display="";cone.style.display="none"}else{foot.style.display="none";footQ.style.display="none"}
-  (sg.flashes||[]).forEach((f,k)=>{if(u>=f&&!sg["f"+k]){sg["f"+k]=1;fx.push({t0:performance.now(),el:h("circle",{cx:st.x,cy:st.y,r:6,fill:"none",stroke:"#fff","stroke-width":6},fxG)})}});
+    footQ.setAttribute("d",pathOf(Q));footQ.setAttribute("fill",hex);footQ.setAttribute("stroke",hex);footQ.style.display="";cone.style.display="none"}else{foot.style.display="none";footQ.style.display="none";cone.style.display=""}
   if(sg.id!==curId){curId=sg.id;markCard(sg.id)}
   hudTxt.innerHTML=sg.land?"<b>Landed</b>":sg.id?`<b>${sg.id}</b> ${esc(S[sg.id].t)}`:"<b>Repositioning</b>";
   hudAlt.textContent=sg.land?"":altLabel(sg.id,st.alt);
