@@ -232,6 +232,9 @@ function hull(P){P=P.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=
   for(const p of P.slice().reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p)}
   return lo.slice(0,-1).concat(up.slice(0,-1))}
 const pathOf=P=>"M"+P.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L")+"Z";
+function viewShape(g,x,y,yaw,pitch,hex){const Q=frustumPts(x,y,yaw,SCH_ALT,pitch,1,SCH_FAR);
+  h("path",{d:pathOf(hull(Q.concat([[x,y]]))),fill:hex,"fill-opacity":.16,stroke:hex,"stroke-width":4,"stroke-dasharray":"14 9","stroke-linejoin":"round"},g);
+  h("path",{d:pathOf(Q),fill:hex,"fill-opacity":.28,stroke:hex,"stroke-width":3,"stroke-linejoin":"round"},g)}
 // Ground area the camera sees, from altitude, heading and gimbal pitch (degrees, -90 = straight down).
 // M4E wide: 4:3 frame, 84 deg diagonal. Rays that miss the ground are cut off at FAR_FT.
 const TX=.7203, TY=.5402, FAR_FT=450;
@@ -263,8 +266,8 @@ const halo=(d,hex,w,dash,g)=>{h("path",{d,fill:"none",stroke:"#0b1214","stroke-w
 const gridPts=(r,l)=>{const[x,y,w,hh]=r,p=[];for(let i=0;i<=l;i++){const xx=x+i*w/l;i%2?p.push([xx,y+hh],[xx,y]):p.push([xx,y],[xx,y+hh])}return p};
 const ellPt=(s,t)=>[s.c[0]+s.a*Math.cos(t),s.c[1]+s.b*Math.sin(t)];
 function drawStatic(id,hex){const s=S[id];const g=h("g",{},staticG);
-  if(s.type==="still"){const[x,y]=s.pos,[ax,ay]=s.aim,a=Math.atan2(ay-y,ax-x),L=120,w=.38;h("path",{d:`M${x},${y} L${x+L*Math.cos(a-w)},${y+L*Math.sin(a-w)} A${L},${L} 0 0 1 ${x+L*Math.cos(a+w)},${y+L*Math.sin(a+w)}Z`,fill:hex,"fill-opacity":.3,stroke:hex,"stroke-width":3},g)}
-  if(s.type==="nadir"){const fw=footW(s.alt[0]),fh=fw*FPR;h("rect",{x:s.pos[0]-fw/2,y:s.pos[1]-fh/2,width:fw,height:fh,fill:"none",stroke:hex,"stroke-width":4,"stroke-dasharray":"14 9"},g)}
+  if(s.type==="still"){const[x,y]=s.pos,[ax,ay]=s.aim;viewShape(g,x,y,Math.atan2(ay-y,ax-x),s.gbv?s.gbv[0]:-20,hex)}
+  if(s.type==="nadir"){viewShape(g,s.pos[0],s.pos[1],-Math.PI/2,-90,hex)}
   if(s.type==="context"){[[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dy])=>{const d=`M${s.pos[0]+dx*30},${s.pos[1]+dy*30} L${s.pos[0]+dx*70},${s.pos[1]+dy*70}`;h("path",{d,stroke:hex,"stroke-width":6,"marker-end":arrowFor(hex)},g)})}
   if(s.type==="line"){halo(`M${s.p} L${s.q}`,hex,7,"",g).setAttribute("marker-end",arrowFor(hex))}
   if(s.type==="rise"){[26,40].forEach(r=>h("circle",{cx:s.pos[0],cy:s.pos[1],r,fill:"none",stroke:hex,"stroke-width":4},g))}
@@ -304,7 +307,7 @@ function poly(pts,u){let L=[],T=0;for(let i=1;i<pts.length;i++){const l=Math.hyp
 function motion(id){const s=S[id],[a0,a1]=s.alt;
   switch(s.type){
    case "still":{const a=ang(s.pos,s.aim);return{dur:2,flashes:[.6],f:u=>({x:s.pos[0],y:s.pos[1],h:a-.8*(1-ease(Math.min(1,u/.45))),alt:a0})}}
-   case "nadir":return{dur:1.8,flashes:[.55],f:u=>({x:s.pos[0],y:s.pos[1],h:-Math.PI/2,alt:a0,nadir:true})};
+   case "nadir":return{dur:2.8,flashes:[.72],f:u=>({x:s.pos[0],y:s.pos[1],h:-Math.PI/2,alt:a0,pitch:lerp(0,-90,ease(Math.min(1,u/.55)))})};
    case "context":return{dur:3.6,flashes:[.15,.4,.65,.9],f:u=>({x:s.pos[0],y:s.pos[1],h:-Math.PI/2+Math.floor(Math.min(u,.999)*4)*Math.PI/2,alt:a0})};
    case "line":return{dur:3.2,flashes:s.flashes||[],f:u=>{const e=ease(u);return{x:lerp(s.p[0],s.q[0],e),y:lerp(s.p[1],s.q[1],e),h:s.fixedHd!=null?(s.fixedHd-90)*Math.PI/180:s.back?ang(s.q,s.p):ang(s.p,s.q),alt:lerp(a0,a1,e)}}};
    case "rise":return{dur:3.2,f:u=>({x:s.pos[0],y:s.pos[1],h:-Math.PI/2+u*.35,alt:lerp(a0,a1,ease(u)),nadir:true})};
@@ -337,7 +340,7 @@ function draw(){let acc=0,i=0;while(i<seq.length-1&&acc+seq[i].dur<=t){acc+=seq[
   const pitch=st.pitch!=null?st.pitch:(gv?lerp(gv[0],gv[1],u):(st.nadir?-90:null));
   if(pitch!=null){const Q=frustumPts(st.x,st.y,st.h,SCH_ALT,pitch,1,SCH_FAR);
     foot.setAttribute("d",pathOf(hull(Q.concat([[st.x,st.y]]))));foot.setAttribute("fill",hex);foot.setAttribute("stroke",hex);foot.style.display="";
-    footQ.setAttribute("d",pathOf(Q));footQ.setAttribute("fill",hex);footQ.setAttribute("stroke",hex);footQ.style.display="";cone.style.display="none"}else{foot.style.display="none";footQ.style.display="none";cone.style.display=""}
+    footQ.setAttribute("d",pathOf(Q));footQ.setAttribute("fill",hex);footQ.setAttribute("stroke",hex);footQ.style.display="";cone.style.display="none"}else{foot.style.display="none";footQ.style.display="none";cone.style.display="none"}
   if(sg.id!==curId){curId=sg.id;markCard(sg.id)}
   hudTxt.innerHTML=sg.land?"<b>Landed</b>":sg.id?`<b>${sg.id}</b> ${esc(S[sg.id].t)}`:"<b>Repositioning</b>";
   hudAlt.textContent=sg.land?"":altLabel(sg.id,st.alt);
